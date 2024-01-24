@@ -1,8 +1,12 @@
-import { Schema, model, connect } from "mongoose";
-import { string } from "zod";
+import { Decimal128, ObjectId, Schema, model, connect } from "mongoose";
 
-interface IUser {
+connect("mongodb://localhost:27017/paytm")
+  .then(() => console.log("Database connected successfully"))
+  .catch((err) => console.error("Database connection error", err));
+
+export interface IUser {
   username: string;
+  email: string;
   password: string;
   firstName: string;
   lastName: string;
@@ -18,6 +22,10 @@ const userSchema = new Schema<IUser>({
     lowercase: true,
     minLength: 3,
     maxLength: 30,
+  },
+  email: {
+    type: String,
+    required: true,
   },
   password: {
     type: String,
@@ -41,8 +49,24 @@ const userSchema = new Schema<IUser>({
   },
 });
 
-const User = model<IUser>("User", userSchema);
+export interface IAccount {
+  userId: ObjectId;
+  balance: Decimal128;
+}
 
-module.exports = {
-  User,
-};
+const accountSchema = new Schema<IAccount>({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  balance: {
+    type: Schema.Types.Decimal128,
+    required: true,
+  },
+});
+
+const User = model<IUser>("User", userSchema);
+const Account = model<IAccount>("Account", accountSchema);
+
+export { User, Account };
